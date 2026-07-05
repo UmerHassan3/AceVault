@@ -7,8 +7,8 @@ function Card({ className, ...props }: React.ComponentProps<"div">) {
     <div
       className={cn(
         "rounded-xl border border-zinc-200 bg-white shadow-sm transition-shadow",
-        "dark:border-white/10 dark:bg-zinc-900 dark:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)]",
-        "hover:shadow-md dark:hover:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.08),0_12px_28px_-14px_rgba(0,0,0,0.7)]",
+        "dark:border-red-900/25 dark:bg-zinc-950 dark:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)]",
+        "hover:shadow-md dark:hover:border-red-700/40 dark:hover:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06),0_12px_28px_-14px_rgba(220,38,38,0.25)]",
         className
       )}
       {...props}
@@ -20,7 +20,7 @@ function CardHeader({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       className={cn(
-        "flex flex-col gap-1 border-b border-zinc-100 p-5 pb-4 dark:border-white/5",
+        "flex flex-col gap-1 border-b border-zinc-100 p-5 pb-4 dark:border-red-900/15",
         className
       )}
       {...props}
@@ -57,7 +57,7 @@ function CardFooter({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       className={cn(
-        "flex items-center gap-2 border-t border-zinc-100 p-5 dark:border-white/5",
+        "flex items-center gap-2 border-t border-zinc-100 p-5 dark:border-red-900/15",
         className
       )}
       {...props}

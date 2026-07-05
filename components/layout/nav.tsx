@@ -47,7 +47,7 @@ export function Nav() {
     >
       {pill ? (
         <motion.span
-          className="absolute inset-y-1 rounded-md bg-zinc-900 shadow-sm dark:bg-zinc-50"
+          className="absolute inset-y-1 rounded-md bg-red-600 shadow-sm shadow-red-900/40"
           animate={{ left: pill.left, width: pill.width }}
           transition={{ type: "spring", stiffness: 500, damping: 35 }}
         />
@@ -62,7 +62,7 @@ export function Nav() {
             className={cn(
               "relative z-10 shrink-0 whitespace-nowrap rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
               active
-                ? "text-zinc-50 dark:text-zinc-900"
+                ? "text-white"
                 : "text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-200"
             )}
           >

@@ -131,6 +131,7 @@ export function AccountForm({ onSuccess }: { onSuccess?: () => void }) {
                     type="number"
                     step="0.01"
                     min="0"
+                    placeholder="e.g. 100"
                     className={cn(fieldErrors.boughtPrice && "border-red-500")}
                   />
                   <FieldError message={fieldErrors.boughtPrice} />
@@ -147,6 +148,7 @@ export function AccountForm({ onSuccess }: { onSuccess?: () => void }) {
                   <Input
                     id="boughtFrom"
                     name="boughtFrom"
+                    placeholder="e.g. Hunter Mansur"
                     className={cn(fieldErrors.boughtFrom && "border-red-500")}
                   />
                   <FieldError message={fieldErrors.boughtFrom} />
@@ -159,6 +161,7 @@ export function AccountForm({ onSuccess }: { onSuccess?: () => void }) {
                     type="number"
                     step="1"
                     min="0"
+                    placeholder="e.g. 7"
                     className={cn(fieldErrors.guaranteeDays && "border-red-500")}
                   />
                   <FieldError message={fieldErrors.guaranteeDays} />
@@ -170,6 +173,7 @@ export function AccountForm({ onSuccess }: { onSuccess?: () => void }) {
                 <Input
                   id="characterId"
                   name="characterId"
+                  placeholder="e.g. 5363678425"
                   className={cn(fieldErrors.characterId && "border-red-500")}
                 />
                 <FieldError message={fieldErrors.characterId} />
@@ -182,6 +186,7 @@ export function AccountForm({ onSuccess }: { onSuccess?: () => void }) {
                     id="email"
                     name="email"
                     type="email"
+                    placeholder="account@example.com"
                     className={cn(fieldErrors.email && "border-red-500")}
                   />
                   <FieldError message={fieldErrors.email} />
@@ -192,6 +197,7 @@ export function AccountForm({ onSuccess }: { onSuccess?: () => void }) {
                     id="number"
                     name="number"
                     type="tel"
+                    placeholder="+92 300 1234567"
                     className={cn(fieldErrors.number && "border-red-500")}
                   />
                   <FieldError message={fieldErrors.number} />
@@ -204,6 +210,7 @@ export function AccountForm({ onSuccess }: { onSuccess?: () => void }) {
                   id="password"
                   name="password"
                   type="password"
+                  placeholder="In-game password"
                   className={cn(fieldErrors.password && "border-red-500")}
                 />
                 <FieldError message={fieldErrors.password} />

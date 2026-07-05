@@ -2,8 +2,8 @@
 
 import { motion } from "motion/react";
 
-import { EditContactDialog } from "@/components/accounts/edit-contact-dialog";
 import { CountdownBadge } from "@/components/credentials/countdown-badge";
+import { EditCredentialsDialog } from "@/components/credentials/edit-credentials-dialog";
 import {
   Card,
   CardContent,
@@ -55,7 +55,7 @@ export function CredentialCard({
               </span>
             </div>
           </div>
-          <EditContactDialog
+          <EditCredentialsDialog
             accountId={sale.account.id}
             email={sale.account.email}
             number={sale.account.number}

@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { generateCredentialsImage } from "@/actions/accounts";
 import { EditContactDialog } from "@/components/accounts/edit-contact-dialog";
 import { SoldDialog } from "@/components/accounts/sold-dialog";
+import { ViewAccountDialog } from "@/components/accounts/view-account-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -46,7 +47,7 @@ export function AccountCard({ account }: { account: Account }) {
       if (result.url) {
         await triggerDownload(
           result.url,
-          `credentials-${account.characterId}.png`
+          `account-details-${account.characterId}.png`
         );
       }
     });
@@ -107,8 +108,13 @@ export function AccountCard({ account }: { account: Account }) {
               accountId={account.id}
               email={account.email}
               number={account.number}
+              guaranteeDays={account.guaranteeDays}
             />
             <SoldDialog
+              accountId={account.id}
+              characterId={account.characterId}
+            />
+            <ViewAccountDialog
               accountId={account.id}
               characterId={account.characterId}
             />

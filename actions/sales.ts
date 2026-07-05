@@ -54,7 +54,14 @@ export async function createSale(
         ? new Date(soldAt.getTime() + data.scheduledDays * 24 * 60 * 60 * 1000)
         : null;
 
+    const invoiceNo = `EX-${soldAt
+      .toISOString()
+      .slice(0, 10)
+      .replace(/-/g, "")}-${data.accountId.slice(0, 4).toUpperCase()}`;
+
     const receiptBuffer = await renderReceiptImage({
+      invoiceNo,
+      characterId: account.characterId,
       buyerName: data.buyerName,
       buyerEmail: data.buyerEmail,
       buyerNumber: data.buyerNumber,
@@ -66,7 +73,8 @@ export async function createSale(
     const receipt = await uploadImage(
       receiptBuffer,
       `receipt-${account.characterId}.png`,
-      "receipts"
+      "receipts",
+      { lossless: true }
     );
 
     // neon-http has no multi-statement transactions; db.batch sends both

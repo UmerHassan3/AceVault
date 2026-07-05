@@ -3,6 +3,7 @@
 import { Download } from "lucide-react";
 import { motion } from "motion/react";
 
+import { DeleteAccountDialog } from "@/components/sales/delete-account-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -55,21 +56,27 @@ export function ReceiptCard({ sale }: { sale: Sale & { account: Account } }) {
             />
           ) : null}
 
-          {sale.receiptUrl ? (
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() =>
-                triggerDownload(
-                  sale.receiptUrl!,
-                  `receipt-${sale.account.characterId}.png`
-                )
-              }
-            >
-              <Download />
-              Download receipt
-            </Button>
-          ) : null}
+          <div className="flex flex-wrap gap-2">
+            {sale.receiptUrl ? (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() =>
+                  triggerDownload(
+                    sale.receiptUrl!,
+                    `receipt-${sale.account.characterId}.png`
+                  )
+                }
+              >
+                <Download />
+                Download receipt
+              </Button>
+            ) : null}
+            <DeleteAccountDialog
+              accountId={sale.account.id}
+              characterId={sale.account.characterId}
+            />
+          </div>
         </CardContent>
       </Card>
     </motion.div>

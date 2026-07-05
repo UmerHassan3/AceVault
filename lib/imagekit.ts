@@ -9,7 +9,8 @@ const client = new ImageKit({
 export async function uploadImage(
   file: Buffer,
   fileName: string,
-  folder: string
+  folder: string,
+  options?: { lossless?: boolean }
 ) {
   const response = await client.files.upload({
     file: await toFile(file, fileName),
@@ -22,7 +23,15 @@ export async function uploadImage(
     throw new Error("ImageKit upload did not return a url/fileId");
   }
 
-  return { url: response.url, fileId: response.fileId };
+  // ImageKit's account-level delivery defaults can auto-convert uploads to a
+  // lossy format (observed serving our generated PNGs back as JPEG), which
+  // visibly blurs crisp text/logos. Force lossless PNG delivery for
+  // precisely-designed generated graphics (receipts, credential images).
+  const url = options?.lossless
+    ? `${response.url}?tr=f-png,q-100`
+    : response.url;
+
+  return { url, fileId: response.fileId };
 }
 
 export async function deleteImage(fileId: string) {

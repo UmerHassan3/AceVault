@@ -9,9 +9,9 @@ const badgeVariants = cva(
     variants: {
       variant: {
         default:
-          "border-transparent bg-zinc-900 text-zinc-50 dark:bg-zinc-50 dark:text-zinc-900",
+          "border-transparent bg-red-600 text-white dark:bg-red-600 dark:text-white",
         secondary:
-          "border-transparent bg-zinc-100 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-50",
+          "border-transparent bg-zinc-100 text-zinc-900 dark:bg-white/10 dark:text-zinc-50",
         success:
           "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-500/25 dark:bg-emerald-500/10 dark:text-emerald-400",
         warning:
@@ -34,7 +34,7 @@ const badgeVariants = cva(
 const dotColor: Record<string, string> = {
   success: "bg-emerald-500",
   warning: "bg-amber-500",
-  default: "bg-zinc-50 dark:bg-zinc-900",
+  default: "bg-white",
   secondary: "bg-zinc-900 dark:bg-zinc-50",
   outline: "bg-zinc-500",
 };

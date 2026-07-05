@@ -10,9 +10,13 @@ import { isSaleChangeable } from "@/lib/changeable";
 import { decryptSecret, encryptSecret } from "@/lib/crypto";
 import { ActionError } from "@/lib/errors";
 import { renderCredentialsImage } from "@/lib/image-generation/credentials-image";
-import { uploadImage } from "@/lib/imagekit";
+import { deleteImage, uploadImage } from "@/lib/imagekit";
 import { mutationRateLimit } from "@/lib/ratelimit";
-import { NewAccountSchema, UpdateContactSchema } from "@/lib/validations/account";
+import {
+  NewAccountSchema,
+  UpdateContactSchema,
+  UpdateSoldAccountSchema,
+} from "@/lib/validations/account";
 import { assertImageFile, assertOptionalImageFile } from "@/lib/validations/file";
 
 export type ActionState = { error?: string; success?: boolean } | undefined;
@@ -112,6 +116,7 @@ export async function updateAccountContact(
       accountId: formData.get("accountId"),
       email: formData.get("email"),
       number: formData.get("number"),
+      guaranteeDays: formData.get("guaranteeDays"),
       password: formData.get("password"),
     });
     if (!parsed.success) {
@@ -137,7 +142,70 @@ export async function updateAccountContact(
       .set({
         email: data.email,
         number: data.number,
+        guaranteeDays: data.guaranteeDays,
         ...(data.password ? { passwordEncrypted: encryptSecret(data.password) } : {}),
+        updatedAt: new Date(),
+      })
+      .where(eq(accounts.id, data.accountId));
+
+    revalidatePath("/new-accounts");
+    revalidatePath("/credentials-to-change");
+    revalidatePath("/sold-accounts");
+    return { success: true };
+  } catch (error) {
+    if (error instanceof ActionError) return { error: error.message };
+    throw error;
+  }
+}
+
+export async function updateSoldAccountCredentials(
+  _prevState: ActionState,
+  formData: FormData
+): Promise<ActionState> {
+  const session = await requireAdmin();
+
+  try {
+    await enforceRateLimit(session.user!.email!);
+
+    const parsed = UpdateSoldAccountSchema.safeParse({
+      accountId: formData.get("accountId"),
+      email: formData.get("email"),
+      number: formData.get("number"),
+      oldPassword: formData.get("oldPassword"),
+      newPassword: formData.get("newPassword"),
+      confirmPassword: formData.get("confirmPassword"),
+    });
+    if (!parsed.success) {
+      return { error: parsed.error.issues[0]?.message ?? "Invalid input." };
+    }
+    const data = parsed.data;
+
+    const row = await db.query.accounts.findFirst({
+      where: eq(accounts.id, data.accountId),
+      with: { sale: true },
+    });
+    if (!row) return { error: "Account not found." };
+
+    const allowed = row.status === "sold" && !!row.sale && isSaleChangeable(row.sale);
+    if (!allowed) {
+      return { error: "This account's credentials cannot be changed yet." };
+    }
+
+    let passwordEncrypted: string | undefined;
+    if (data.newPassword) {
+      const currentPassword = decryptSecret(row.passwordEncrypted);
+      if (currentPassword !== data.oldPassword) {
+        return { error: "Old password is incorrect." };
+      }
+      passwordEncrypted = encryptSecret(data.newPassword);
+    }
+
+    await db
+      .update(accounts)
+      .set({
+        email: data.email,
+        number: data.number,
+        ...(passwordEncrypted ? { passwordEncrypted } : {}),
         updatedAt: new Date(),
       })
       .where(eq(accounts.id, data.accountId));
@@ -168,17 +236,109 @@ export async function generateCredentialsImage(
     const password = decryptSecret(account.passwordEncrypted);
     const buffer = await renderCredentialsImage({
       characterId: account.characterId,
+      boughtFrom: account.boughtFrom,
+      boughtPrice: account.boughtPrice,
+      boughtCurrency: account.boughtCurrency,
+      guaranteeDays: account.guaranteeDays,
       email: account.email,
+      number: account.number,
       password,
+      screenshot1Url: account.screenshot1Url,
+      screenshot2Url: account.screenshot2Url,
       backupCodesUrl: account.backupCodesUrl,
     });
 
     const uploaded = await uploadImage(
       buffer,
-      `credentials-${account.characterId}.png`,
-      "credentials"
+      `account-details-${account.characterId}.png`,
+      "credentials",
+      { lossless: true }
     );
     return { url: uploaded.url };
+  } catch (error) {
+    if (error instanceof ActionError) return { error: error.message };
+    throw error;
+  }
+}
+
+export async function deleteAccount(
+  accountId: string
+): Promise<{ error?: string; success?: boolean }> {
+  const session = await requireAdmin();
+
+  try {
+    await enforceRateLimit(session.user!.email!);
+
+    const account = await db.query.accounts.findFirst({
+      where: eq(accounts.id, accountId),
+      with: { sale: true },
+    });
+    if (!account) return { error: "Account not found." };
+
+    // The sales row is removed automatically via the FK's ON DELETE CASCADE.
+    await db.delete(accounts).where(eq(accounts.id, accountId));
+
+    const fileIds = [
+      account.screenshot1FileId,
+      account.screenshot2FileId,
+      account.backupCodesFileId,
+      account.sale?.receiptFileId,
+    ].filter((id): id is string => !!id);
+
+    await Promise.allSettled(fileIds.map((id) => deleteImage(id)));
+
+    revalidatePath("/new-accounts");
+    revalidatePath("/sold-accounts");
+    revalidatePath("/credentials-to-change");
+    return { success: true };
+  } catch (error) {
+    if (error instanceof ActionError) return { error: error.message };
+    throw error;
+  }
+}
+
+export type AccountDetails = {
+  characterId: string;
+  boughtFrom: string;
+  boughtPrice: string;
+  boughtCurrency: "USDT" | "PKR";
+  guaranteeDays: number;
+  email: string;
+  number: string;
+  password: string;
+  screenshot1Url: string;
+  screenshot2Url: string;
+  backupCodesUrl: string | null;
+};
+
+export async function getAccountDetails(
+  accountId: string
+): Promise<{ data?: AccountDetails; error?: string }> {
+  const session = await requireAdmin();
+
+  try {
+    await enforceRateLimit(session.user!.email!);
+
+    const account = await db.query.accounts.findFirst({
+      where: eq(accounts.id, accountId),
+    });
+    if (!account) return { error: "Account not found." };
+
+    return {
+      data: {
+        characterId: account.characterId,
+        boughtFrom: account.boughtFrom,
+        boughtPrice: account.boughtPrice,
+        boughtCurrency: account.boughtCurrency,
+        guaranteeDays: account.guaranteeDays,
+        email: account.email,
+        number: account.number,
+        password: decryptSecret(account.passwordEncrypted),
+        screenshot1Url: account.screenshot1Url,
+        screenshot2Url: account.screenshot2Url,
+        backupCodesUrl: account.backupCodesUrl,
+      },
+    };
   } catch (error) {
     if (error instanceof ActionError) return { error: error.message };
     throw error;

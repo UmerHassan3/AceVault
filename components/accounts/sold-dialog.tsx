@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useState } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { toast } from "sonner";
 
@@ -14,6 +14,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { FieldError } from "@/components/ui/field-error";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -25,7 +26,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { SuccessCheck } from "@/components/ui/success-check";
-import { triggerDownload } from "@/lib/utils";
+import { cn, triggerDownload } from "@/lib/utils";
+import { SaleSchema } from "@/lib/validations/sale";
 
 const DAY_OPTIONS = [1, 2, 3, 4, 5, 6];
 
@@ -41,10 +43,9 @@ function SoldDialogBody({
   const [changeType, setChangeType] = useState<"instant" | "scheduled">(
     "instant"
   );
-  const [state, formAction, pending] = useActionState<
-    SaleActionState,
-    FormData
-  >(createSale, undefined);
+  const [pending, startTransition] = useTransition();
+  const [state, setState] = useState<SaleActionState>(undefined);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [revealed, setRevealed] = useState(false);
 
   useEffect(() => {
@@ -60,6 +61,39 @@ function SoldDialogBody({
     const timeout = setTimeout(() => setRevealed(true), 900);
     return () => clearTimeout(timeout);
   }, [state?.receiptUrl]);
+
+  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+
+    const parsed = SaleSchema.safeParse({
+      accountId: formData.get("accountId"),
+      buyerName: formData.get("buyerName"),
+      buyerEmail: formData.get("buyerEmail"),
+      buyerNumber: formData.get("buyerNumber"),
+      guaranteeDays: formData.get("guaranteeDays"),
+      price: formData.get("price"),
+      priceCurrency: formData.get("priceCurrency"),
+      changeType: formData.get("changeType"),
+      scheduledDays: formData.get("scheduledDays") || undefined,
+    });
+
+    if (!parsed.success) {
+      const errors: Record<string, string> = {};
+      for (const issue of parsed.error.issues) {
+        const key = issue.path[0];
+        if (typeof key === "string" && !errors[key]) errors[key] = issue.message;
+      }
+      setFieldErrors(errors);
+      return;
+    }
+    setFieldErrors({});
+
+    startTransition(async () => {
+      const result = await createSale(undefined, formData);
+      setState(result);
+    });
+  }
 
   if (state?.receiptUrl) {
     return (
@@ -114,12 +148,18 @@ function SoldDialogBody({
       <DialogHeader>
         <DialogTitle>Mark as sold</DialogTitle>
       </DialogHeader>
-      <form action={formAction} className="flex flex-col gap-4">
+      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <input type="hidden" name="accountId" value={accountId} />
 
         <div className="flex flex-col gap-1.5">
           <Label htmlFor="buyerName">Buyer Name</Label>
-          <Input id="buyerName" name="buyerName" required />
+          <Input
+            id="buyerName"
+            name="buyerName"
+            placeholder="Ahmed Khan"
+            className={cn(fieldErrors.buyerName && "border-red-500")}
+          />
+          <FieldError message={fieldErrors.buyerName} />
         </div>
 
         <div className="flex flex-col gap-2">
@@ -156,17 +196,32 @@ function SoldDialogBody({
                 ))}
               </SelectContent>
             </Select>
+            <FieldError message={fieldErrors.scheduledDays} />
           </div>
         ) : null}
 
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="buyerEmail">Buyer Email</Label>
-            <Input id="buyerEmail" name="buyerEmail" type="email" required />
+            <Input
+              id="buyerEmail"
+              name="buyerEmail"
+              type="email"
+              placeholder="buyer@example.com"
+              className={cn(fieldErrors.buyerEmail && "border-red-500")}
+            />
+            <FieldError message={fieldErrors.buyerEmail} />
           </div>
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="buyerNumber">Buyer Number</Label>
-            <Input id="buyerNumber" name="buyerNumber" type="tel" required />
+            <Input
+              id="buyerNumber"
+              name="buyerNumber"
+              type="tel"
+              placeholder="+92 300 1234567"
+              className={cn(fieldErrors.buyerNumber && "border-red-500")}
+            />
+            <FieldError message={fieldErrors.buyerNumber} />
           </div>
         </div>
 
@@ -179,8 +234,10 @@ function SoldDialogBody({
               type="number"
               min="0"
               step="1"
-              required
+              placeholder="e.g. 7"
+              className={cn(fieldErrors.guaranteeDays && "border-red-500")}
             />
+            <FieldError message={fieldErrors.guaranteeDays} />
           </div>
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="price">Price</Label>
@@ -190,8 +247,10 @@ function SoldDialogBody({
               type="number"
               min="0"
               step="0.01"
-              required
+              placeholder="e.g. 15000"
+              className={cn(fieldErrors.price && "border-red-500")}
             />
+            <FieldError message={fieldErrors.price} />
           </div>
           <div className="col-span-2 flex flex-col gap-1.5 sm:col-span-1">
             <Label htmlFor="priceCurrency">Currency</Label>

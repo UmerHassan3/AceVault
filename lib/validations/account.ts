@@ -29,6 +29,10 @@ export const UpdateContactSchema = z.object({
     .string()
     .trim()
     .regex(PHONE_REGEX, { message: "Enter a valid phone number." }),
+  guaranteeDays: z.coerce
+    .number()
+    .int()
+    .min(0, { message: "Must be 0 or more." }),
   password: z
     .string()
     .min(1)
@@ -37,3 +41,40 @@ export const UpdateContactSchema = z.object({
 });
 
 export type UpdateContactInput = z.infer<typeof UpdateContactSchema>;
+
+const optionalString = z
+  .string()
+  .optional()
+  .or(z.literal("").transform(() => undefined));
+
+export const UpdateSoldAccountSchema = z
+  .object({
+    accountId: z.string().uuid(),
+    email: z.string().trim().email({ message: "Enter a valid email." }),
+    number: z
+      .string()
+      .trim()
+      .regex(PHONE_REGEX, { message: "Enter a valid phone number." }),
+    oldPassword: optionalString,
+    newPassword: optionalString,
+    confirmPassword: optionalString,
+  })
+  .refine(
+    (data) =>
+      !data.oldPassword && !data.newPassword && !data.confirmPassword
+        ? true
+        : !!data.oldPassword && !!data.newPassword && !!data.confirmPassword,
+    {
+      message: "Fill in the old, new, and confirm password to change it.",
+      path: ["oldPassword"],
+    }
+  )
+  .refine(
+    (data) => !data.newPassword || data.newPassword === data.confirmPassword,
+    {
+      message: "New password and confirm password do not match.",
+      path: ["confirmPassword"],
+    }
+  );
+
+export type UpdateSoldAccountInput = z.infer<typeof UpdateSoldAccountSchema>;

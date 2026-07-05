@@ -25,6 +25,18 @@ export const users = pgTable("users", {
     .defaultNow(),
 });
 
+export const passwordResetTokens = pgTable("password_reset_tokens", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  tokenHash: text("token_hash").notNull().unique(),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
 export const accounts = pgTable("accounts", {
   id: uuid("id").primaryKey().defaultRandom(),
   boughtPrice: numeric("bought_price", { precision: 12, scale: 2 }).notNull(),
@@ -90,3 +102,5 @@ export type Sale = typeof sales.$inferSelect;
 export type NewSaleRow = typeof sales.$inferInsert;
 export type User = typeof users.$inferSelect;
 export type NewUserRow = typeof users.$inferInsert;
+export type PasswordResetToken = typeof passwordResetTokens.$inferSelect;
+export type NewPasswordResetTokenRow = typeof passwordResetTokens.$inferInsert;

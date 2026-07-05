@@ -15,6 +15,13 @@
       "when": 1783240371421,
       "tag": "0001_dear_black_tarantula",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1783284475439,
+      "tag": "0002_medical_psynapse",
+      "breakpoints": true
     }
   ]
 }
