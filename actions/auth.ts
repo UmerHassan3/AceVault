@@ -1,6 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { AuthError, CredentialsSignin } from "next-auth";
 
 import { signIn, signOut } from "@/auth";
 import { LoginSchema } from "@/lib/validations/auth";
@@ -22,23 +23,28 @@ export async function loginAction(
     return { error: parsed.error.issues[0]?.message ?? "Invalid input." };
   }
 
-  const redirectUrl = await signIn("credentials", {
-    ...parsed.data,
-    redirect: false,
-    redirectTo: DASHBOARD_PATH,
-  });
-
-  const url = new URL(redirectUrl);
-  const code = url.searchParams.get("code");
-
-  if (code === "too_many_attempts") {
-    return { error: "Too many attempts. Please wait a minute and try again." };
+  try {
+    await signIn("credentials", {
+      ...parsed.data,
+      redirect: false,
+      redirectTo: DASHBOARD_PATH,
+    });
+  } catch (error) {
+    if (error instanceof CredentialsSignin) {
+      if (error.code === "too_many_attempts") {
+        return {
+          error: "Too many attempts. Please wait a minute and try again.",
+        };
+      }
+      return { error: "Invalid email or password." };
+    }
+    if (error instanceof AuthError) {
+      return { error: "Something went wrong. Please try again." };
+    }
+    throw error;
   }
-  if (code) {
-    return { error: "Invalid email or password." };
-  }
 
-  redirect(url.pathname + url.search);
+  redirect(DASHBOARD_PATH);
 }
 
 export async function signOutAction() {

@@ -1,7 +1,10 @@
 import bcrypt from "bcryptjs";
+import { eq } from "drizzle-orm";
 import NextAuth, { CredentialsSignin } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 
+import { db } from "@/db";
+import { users } from "@/db/schema";
 import { loginRateLimit } from "@/lib/ratelimit";
 import { LoginSchema } from "@/lib/validations/auth";
 
@@ -34,21 +37,17 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         if (!success) throw new TooManyAttemptsError();
 
         const { email, password } = parsed.data;
-        if (email !== process.env.ADMIN_EMAIL) {
-          throw new InvalidCredentialsError();
-        }
 
-        const passwordHash = process.env.ADMIN_PASSWORD_HASH ?? "";
-        const valid = await bcrypt.compare(password, passwordHash);
+        const user = await db.query.users.findFirst({
+          where: eq(users.email, email),
+        });
+        if (!user) throw new InvalidCredentialsError();
+
+        const valid = await bcrypt.compare(password, user.passwordHash);
         if (!valid) throw new InvalidCredentialsError();
 
-        return { id: "admin", email };
+        return { id: user.id, email: user.email };
       },
     }),
   ],
-  callbacks: {
-    async signIn({ user }) {
-      return user?.email === process.env.ADMIN_EMAIL;
-    },
-  },
 });

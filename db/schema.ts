@@ -16,6 +16,15 @@ export const accountStatusEnum = pgEnum("account_status", [
 ]);
 export const changeTypeEnum = pgEnum("change_type", ["instant", "scheduled"]);
 
+export const users = pgTable("users", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  email: text("email").notNull().unique(),
+  passwordHash: text("password_hash").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
 export const accounts = pgTable("accounts", {
   id: uuid("id").primaryKey().defaultRandom(),
   boughtPrice: numeric("bought_price", { precision: 12, scale: 2 }).notNull(),
@@ -79,3 +88,5 @@ export type Account = typeof accounts.$inferSelect;
 export type NewAccountRow = typeof accounts.$inferInsert;
 export type Sale = typeof sales.$inferSelect;
 export type NewSaleRow = typeof sales.$inferInsert;
+export type User = typeof users.$inferSelect;
+export type NewUserRow = typeof users.$inferInsert;
