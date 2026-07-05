@@ -36,7 +36,7 @@ const DialogContent = React.forwardRef<
         <DialogPrimitive.Content ref={ref} asChild forceMount {...props}>
           <motion.div
             className={cn(
-              "fixed left-1/2 top-1/2 z-50 grid w-full max-w-lg gap-4 rounded-xl border border-zinc-200 bg-white p-6 shadow-lg max-h-[90vh] overflow-y-auto dark:border-zinc-800 dark:bg-zinc-900",
+              "fixed left-1/2 top-1/2 z-50 grid w-[calc(100%-2rem)] max-w-lg gap-4 rounded-xl border border-zinc-200 bg-white p-5 shadow-lg max-h-[85vh] overflow-y-auto dark:border-zinc-800 dark:bg-zinc-900 sm:p-6",
               className
             )}
             initial={{ opacity: 0, scale: 0.96, x: "-50%", y: "-45%" }}

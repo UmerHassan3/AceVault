@@ -87,7 +87,7 @@ export function AccountCard({ account }: { account: Account }) {
             ) : null}
           </div>
 
-          <div className="grid grid-cols-3 gap-3 rounded-lg bg-zinc-50 px-4 py-3 dark:bg-white/3">
+          <div className="grid grid-cols-2 gap-3 rounded-lg bg-zinc-50 px-4 py-3 sm:grid-cols-3 dark:bg-white/3">
             <Stat label="Bought From" value={account.boughtFrom} />
             <Stat label="Guarantee" value={`${account.guaranteeDays}d`} />
             <Stat label="Number" value={account.number} />

@@ -159,7 +159,7 @@ function SoldDialogBody({
           </div>
         ) : null}
 
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="buyerEmail">Buyer Email</Label>
             <Input id="buyerEmail" name="buyerEmail" type="email" required />
@@ -170,7 +170,7 @@ function SoldDialogBody({
           </div>
         </div>
 
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="guaranteeDays">Guarantee Days</Label>
             <Input
@@ -193,7 +193,7 @@ function SoldDialogBody({
               required
             />
           </div>
-          <div className="flex flex-col gap-1.5">
+          <div className="col-span-2 flex flex-col gap-1.5 sm:col-span-1">
             <Label htmlFor="priceCurrency">Currency</Label>
             <CurrencySelect name="priceCurrency" />
           </div>

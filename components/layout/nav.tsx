@@ -42,7 +42,8 @@ export function Nav() {
   return (
     <nav
       ref={containerRef}
-      className="relative flex flex-wrap gap-1 rounded-lg bg-zinc-100 p-1 dark:bg-zinc-900/60"
+      style={{ scrollbarWidth: "none" }}
+      className="relative flex min-w-0 flex-1 flex-nowrap gap-1 overflow-x-auto rounded-lg bg-zinc-100 p-1 dark:bg-zinc-900/60 [&::-webkit-scrollbar]:hidden sm:flex-none"
     >
       {pill ? (
         <motion.span
@@ -59,7 +60,7 @@ export function Nav() {
             href={link.href}
             data-active={active}
             className={cn(
-              "relative z-10 rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
+              "relative z-10 shrink-0 whitespace-nowrap rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
               active
                 ? "text-zinc-50 dark:text-zinc-900"
                 : "text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-200"

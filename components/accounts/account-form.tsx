@@ -122,7 +122,7 @@ export function AccountForm({ onSuccess }: { onSuccess?: () => void }) {
           {/* Step 1: Account Info */}
           <div className="w-full shrink-0 pr-1" inert={step !== 0}>
             <div className="flex flex-col gap-4">
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <div className="flex flex-col gap-1.5">
                   <Label htmlFor="boughtPrice">Bought Price</Label>
                   <Input
@@ -141,7 +141,7 @@ export function AccountForm({ onSuccess }: { onSuccess?: () => void }) {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <div className="flex flex-col gap-1.5">
                   <Label htmlFor="boughtFrom">Bought From</Label>
                   <Input
@@ -175,7 +175,7 @@ export function AccountForm({ onSuccess }: { onSuccess?: () => void }) {
                 <FieldError message={fieldErrors.characterId} />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <div className="flex flex-col gap-1.5">
                   <Label htmlFor="email">Email</Label>
                   <Input
@@ -260,7 +260,7 @@ export function AccountForm({ onSuccess }: { onSuccess?: () => void }) {
           <div className="w-full shrink-0 pl-1" inert={step !== 2}>
             <div className="flex flex-col gap-4">
               {summary ? (
-                <dl className="grid grid-cols-2 gap-x-4 gap-y-2 rounded-md border border-zinc-200 p-4 text-sm dark:border-zinc-800">
+                <dl className="grid grid-cols-1 gap-x-4 gap-y-2 rounded-md border border-zinc-200 p-4 text-sm sm:grid-cols-2 dark:border-zinc-800">
                   <dt className="text-zinc-500 dark:text-zinc-400">Character ID</dt>
                   <dd>{summary.characterId}</dd>
                   <dt className="text-zinc-500 dark:text-zinc-400">Bought Price</dt>
