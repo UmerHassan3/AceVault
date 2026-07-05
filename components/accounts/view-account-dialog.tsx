@@ -109,6 +109,17 @@ export function ViewAccountDialog({
               />
             </div>
 
+            {details.description ? (
+              <div className="flex flex-col gap-1 rounded-lg border border-zinc-200 p-3 dark:border-white/10">
+                <span className="text-[11px] font-medium uppercase tracking-wide text-zinc-400 dark:text-zinc-500">
+                  Description
+                </span>
+                <p className="whitespace-pre-wrap text-sm text-zinc-700 dark:text-zinc-300">
+                  {details.description}
+                </p>
+              </div>
+            ) : null}
+
             <div className="flex flex-wrap gap-3">
               <ExpandableImage
                 src={details.screenshot1Url}

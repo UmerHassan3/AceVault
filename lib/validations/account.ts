@@ -3,6 +3,14 @@ import { z } from "zod";
 export const CurrencyEnum = z.enum(["USDT", "PKR"]);
 export const PHONE_REGEX = /^\+?[0-9]{6,15}$/;
 
+const optionalTrimmedString = (max: number) =>
+  z
+    .string()
+    .trim()
+    .max(max)
+    .optional()
+    .or(z.literal("").transform(() => undefined));
+
 export const NewAccountSchema = z.object({
   boughtPrice: z.coerce.number().positive({ message: "Enter a valid price." }),
   boughtCurrency: CurrencyEnum,
@@ -12,6 +20,7 @@ export const NewAccountSchema = z.object({
     .int()
     .min(0, { message: "Must be 0 or more." }),
   characterId: z.string().trim().min(1, { message: "Required." }).max(100),
+  description: optionalTrimmedString(2000),
   email: z.string().trim().email({ message: "Enter a valid email." }),
   number: z
     .string()

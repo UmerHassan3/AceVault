@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { FieldError } from "@/components/ui/field-error";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { ActionError } from "@/lib/errors";
 import { cn } from "@/lib/utils";
 import { NewAccountSchema } from "@/lib/validations/account";
@@ -24,6 +25,7 @@ type Summary = {
   boughtFrom: string;
   guaranteeDays: string;
   characterId: string;
+  description: string;
   email: string;
   number: string;
 };
@@ -63,6 +65,7 @@ export function AccountForm({ onSuccess }: { onSuccess?: () => void }) {
       boughtFrom: data.get("boughtFrom"),
       guaranteeDays: data.get("guaranteeDays"),
       characterId: data.get("characterId"),
+      description: data.get("description"),
       email: data.get("email"),
       number: data.get("number"),
       password: data.get("password"),
@@ -86,6 +89,7 @@ export function AccountForm({ onSuccess }: { onSuccess?: () => void }) {
       boughtFrom: String(data.get("boughtFrom") ?? ""),
       guaranteeDays: String(data.get("guaranteeDays") ?? ""),
       characterId: String(data.get("characterId") ?? ""),
+      description: String(data.get("description") ?? ""),
       email: String(data.get("email") ?? ""),
       number: String(data.get("number") ?? ""),
     });
@@ -177,6 +181,18 @@ export function AccountForm({ onSuccess }: { onSuccess?: () => void }) {
                   className={cn(fieldErrors.characterId && "border-red-500")}
                 />
                 <FieldError message={fieldErrors.characterId} />
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <Label htmlFor="description">Description (optional)</Label>
+                <Textarea
+                  id="description"
+                  name="description"
+                  rows={3}
+                  placeholder="Any extra notes about this account (rank, skins, region, etc.)"
+                  className={cn(fieldErrors.description && "border-red-500")}
+                />
+                <FieldError message={fieldErrors.description} />
               </div>
 
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -282,6 +298,14 @@ export function AccountForm({ onSuccess }: { onSuccess?: () => void }) {
                   <dd className="truncate">{summary.email}</dd>
                   <dt className="text-zinc-500 dark:text-zinc-400">Number</dt>
                   <dd>{summary.number}</dd>
+                  {summary.description ? (
+                    <>
+                      <dt className="text-zinc-500 dark:text-zinc-400">Description</dt>
+                      <dd className="whitespace-pre-wrap sm:col-span-1">
+                        {summary.description}
+                      </dd>
+                    </>
+                  ) : null}
                 </dl>
               ) : null}
 

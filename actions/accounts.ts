@@ -41,6 +41,7 @@ export async function createAccount(
       boughtFrom: formData.get("boughtFrom"),
       guaranteeDays: formData.get("guaranteeDays"),
       characterId: formData.get("characterId"),
+      description: formData.get("description"),
       email: formData.get("email"),
       number: formData.get("number"),
       password: formData.get("password"),
@@ -84,6 +85,7 @@ export async function createAccount(
       boughtFrom: data.boughtFrom,
       guaranteeDays: data.guaranteeDays,
       characterId: data.characterId,
+      description: data.description,
       email: data.email,
       number: data.number,
       passwordEncrypted: encryptSecret(data.password),
@@ -236,10 +238,7 @@ export async function generateCredentialsImage(
     const password = decryptSecret(account.passwordEncrypted);
     const buffer = await renderCredentialsImage({
       characterId: account.characterId,
-      boughtFrom: account.boughtFrom,
-      boughtPrice: account.boughtPrice,
-      boughtCurrency: account.boughtCurrency,
-      guaranteeDays: account.guaranteeDays,
+      description: account.description,
       email: account.email,
       number: account.number,
       password,
@@ -303,6 +302,7 @@ export type AccountDetails = {
   boughtPrice: string;
   boughtCurrency: "USDT" | "PKR";
   guaranteeDays: number;
+  description: string | null;
   email: string;
   number: string;
   password: string;
@@ -331,6 +331,7 @@ export async function getAccountDetails(
         boughtPrice: account.boughtPrice,
         boughtCurrency: account.boughtCurrency,
         guaranteeDays: account.guaranteeDays,
+        description: account.description,
         email: account.email,
         number: account.number,
         password: decryptSecret(account.passwordEncrypted),

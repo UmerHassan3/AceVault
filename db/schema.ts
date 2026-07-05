@@ -44,6 +44,7 @@ export const accounts = pgTable("accounts", {
   boughtFrom: text("bought_from").notNull(),
   guaranteeDays: integer("guarantee_days").notNull(),
   characterId: text("character_id").notNull(),
+  description: text("description"),
   email: text("email").notNull(),
   number: text("number").notNull(),
   passwordEncrypted: text("password_encrypted").notNull(),
