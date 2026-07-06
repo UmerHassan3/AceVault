@@ -5,6 +5,7 @@ import { Pencil } from "lucide-react";
 import { toast } from "sonner";
 
 import { updateAccountContact } from "@/actions/accounts";
+import { ImageDropzone } from "@/components/accounts/image-dropzone";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -13,26 +14,32 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { ExpandableImage } from "@/components/ui/expandable-image";
 import { FieldError } from "@/components/ui/field-error";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { ActionError } from "@/lib/errors";
 import { cn } from "@/lib/utils";
 import { UpdateContactSchema } from "@/lib/validations/account";
+import { assertOptionalImageFile } from "@/lib/validations/file";
 
 export function EditContactDialog({
   accountId,
   email,
   number,
   guaranteeDays,
+  backupCodesUrl,
 }: {
   accountId: string;
   email: string;
   number: string;
   guaranteeDays: number;
+  backupCodesUrl?: string | null;
 }) {
   const [open, setOpen] = useState(false);
   const [pending, startTransition] = useTransition();
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [fileError, setFileError] = useState<string | undefined>();
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -56,6 +63,17 @@ export function EditContactDialog({
       return;
     }
     setFieldErrors({});
+
+    try {
+      assertOptionalImageFile(formData.get("backupCodes"), "Backup codes screenshot");
+    } catch (error) {
+      if (error instanceof ActionError) {
+        setFileError(error.message);
+        return;
+      }
+      throw error;
+    }
+    setFileError(undefined);
 
     startTransition(async () => {
       const result = await updateAccountContact(undefined, formData);
@@ -133,6 +151,27 @@ export function EditContactDialog({
             />
             <FieldError message={fieldErrors.password} />
           </div>
+
+          <div className="flex flex-col gap-1.5">
+            {backupCodesUrl ? (
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-zinc-500 dark:text-zinc-400">
+                  Current backup codes screenshot:
+                </span>
+                <ExpandableImage
+                  src={backupCodesUrl}
+                  alt="Backup codes"
+                  className="size-12 border border-zinc-200 dark:border-white/10"
+                />
+              </div>
+            ) : null}
+            <ImageDropzone
+              name="backupCodes"
+              label="Replace Backup Codes Screenshot (optional)"
+            />
+            <FieldError message={fileError} />
+          </div>
+
           <Button type="submit" disabled={pending}>
             {pending ? "Saving..." : "Save changes"}
           </Button>

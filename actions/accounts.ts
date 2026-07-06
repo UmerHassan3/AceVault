@@ -19,6 +19,29 @@ import {
 } from "@/lib/validations/account";
 import { assertImageFile, assertOptionalImageFile } from "@/lib/validations/file";
 
+async function buildBackupCodesUpdate(
+  formData: FormData,
+  currentFileId: string | null
+): Promise<{ backupCodesUrl?: string; backupCodesFileId?: string }> {
+  const file = assertOptionalImageFile(
+    formData.get("backupCodes"),
+    "Backup codes screenshot"
+  );
+  if (!file) return {};
+
+  const uploaded = await uploadImage(
+    Buffer.from(await file.arrayBuffer()),
+    file.name,
+    "accounts/backup-codes"
+  );
+
+  if (currentFileId) {
+    await deleteImage(currentFileId).catch(() => {});
+  }
+
+  return { backupCodesUrl: uploaded.url, backupCodesFileId: uploaded.fileId };
+}
+
 export type ActionState = { error?: string; success?: boolean } | undefined;
 
 async function enforceRateLimit(email: string) {
@@ -98,6 +121,7 @@ export async function createAccount(
     });
 
     revalidatePath("/new-accounts");
+    revalidatePath("/all-accounts");
     return { success: true };
   } catch (error) {
     if (error instanceof ActionError) return { error: error.message };
@@ -139,6 +163,11 @@ export async function updateAccountContact(
       return { error: "This account's credentials cannot be changed yet." };
     }
 
+    const backupCodesUpdate = await buildBackupCodesUpdate(
+      formData,
+      row.backupCodesFileId
+    );
+
     await db
       .update(accounts)
       .set({
@@ -146,6 +175,7 @@ export async function updateAccountContact(
         number: data.number,
         guaranteeDays: data.guaranteeDays,
         ...(data.password ? { passwordEncrypted: encryptSecret(data.password) } : {}),
+        ...backupCodesUpdate,
         updatedAt: new Date(),
       })
       .where(eq(accounts.id, data.accountId));
@@ -153,6 +183,7 @@ export async function updateAccountContact(
     revalidatePath("/new-accounts");
     revalidatePath("/credentials-to-change");
     revalidatePath("/sold-accounts");
+    revalidatePath("/all-accounts");
     return { success: true };
   } catch (error) {
     if (error instanceof ActionError) return { error: error.message };
@@ -173,9 +204,7 @@ export async function updateSoldAccountCredentials(
       accountId: formData.get("accountId"),
       email: formData.get("email"),
       number: formData.get("number"),
-      oldPassword: formData.get("oldPassword"),
-      newPassword: formData.get("newPassword"),
-      confirmPassword: formData.get("confirmPassword"),
+      password: formData.get("password"),
     });
     if (!parsed.success) {
       return { error: parsed.error.issues[0]?.message ?? "Invalid input." };
@@ -193,14 +222,9 @@ export async function updateSoldAccountCredentials(
       return { error: "This account's credentials cannot be changed yet." };
     }
 
-    let passwordEncrypted: string | undefined;
-    if (data.newPassword) {
-      const currentPassword = decryptSecret(row.passwordEncrypted);
-      if (currentPassword !== data.oldPassword) {
-        return { error: "Old password is incorrect." };
-      }
-      passwordEncrypted = encryptSecret(data.newPassword);
-    }
+    const passwordEncrypted = data.password
+      ? encryptSecret(data.password)
+      : undefined;
 
     await db
       .update(accounts)
@@ -215,6 +239,7 @@ export async function updateSoldAccountCredentials(
     revalidatePath("/new-accounts");
     revalidatePath("/credentials-to-change");
     revalidatePath("/sold-accounts");
+    revalidatePath("/all-accounts");
     return { success: true };
   } catch (error) {
     if (error instanceof ActionError) return { error: error.message };
@@ -289,6 +314,7 @@ export async function deleteAccount(
     revalidatePath("/new-accounts");
     revalidatePath("/sold-accounts");
     revalidatePath("/credentials-to-change");
+    revalidatePath("/all-accounts");
     return { success: true };
   } catch (error) {
     if (error instanceof ActionError) return { error: error.message };

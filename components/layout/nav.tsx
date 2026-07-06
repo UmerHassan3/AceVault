@@ -8,6 +8,7 @@ import { motion } from "motion/react";
 import { cn } from "@/lib/utils";
 
 const links = [
+  { href: "/all-accounts", label: "All Accounts" },
   { href: "/new-accounts", label: "New Accounts" },
   { href: "/sold-accounts", label: "Sold Accounts" },
   { href: "/credentials-to-change", label: "Credentials to Change" },
