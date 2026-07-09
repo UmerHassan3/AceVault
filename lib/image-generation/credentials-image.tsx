@@ -3,7 +3,17 @@ import "server-only";
 import { ImageResponse } from "next/og";
 
 const WIDTH = 1160;
+const PADDING = 40;
+const IMAGE_ROW_GAP = 20;
+const IMAGE_BOX_HEIGHT = 400;
 const RED = "#dc2626";
+
+// Bypass ImageKit's account-level auto-optimization (it can silently
+// downgrade delivered images to a lossier format) so embedded screenshots
+// render at their original quality inside the generated PNG.
+function fullQuality(url: string) {
+  return `${url}${url.includes("?") ? "&" : "?"}tr=orig-true`;
+}
 
 function Row({
   label,
@@ -54,13 +64,21 @@ function Row({
   );
 }
 
-function ImageBox({ label, src }: { label: string; src: string }) {
+function ImageBox({
+  label,
+  src,
+  width,
+}: {
+  label: string;
+  src: string;
+  width: number;
+}) {
   return (
     <div
       style={{
         display: "flex",
         flexDirection: "column",
-        width: 360,
+        width,
         gap: 10,
       }}
     >
@@ -79,8 +97,8 @@ function ImageBox({ label, src }: { label: string; src: string }) {
       <div
         style={{
           display: "flex",
-          width: 360,
-          height: 620,
+          width,
+          height: IMAGE_BOX_HEIGHT,
           alignItems: "center",
           justifyContent: "center",
           backgroundColor: "#000000",
@@ -91,10 +109,10 @@ function ImageBox({ label, src }: { label: string; src: string }) {
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src={src}
+          src={fullQuality(src)}
           alt={label}
-          width={358}
-          height={618}
+          width={width - 2}
+          height={IMAGE_BOX_HEIGHT - 2}
           style={{ objectFit: "contain" }}
         />
       </div>
@@ -123,7 +141,19 @@ export async function renderCredentialsImage(params: {
     backupCodesUrl,
   } = params;
 
-  const height = 1050 + (description ? 160 : 0);
+  const images = [
+    { label: "Screenshot 1", src: screenshot1Url },
+    { label: "Screenshot 2", src: screenshot2Url },
+    ...(backupCodesUrl ? [{ label: "Backup Codes", src: backupCodesUrl }] : []),
+  ];
+  // Always lay images out on a single row, sizing each box to fit — avoids
+  // an unplanned flex-wrap onto a second row that the fixed canvas height
+  // below can't account for.
+  const availableWidth = WIDTH - PADDING * 2;
+  const imageBoxWidth =
+    (availableWidth - IMAGE_ROW_GAP * (images.length - 1)) / images.length;
+
+  const height = 830 + (description ? 160 : 0);
 
   const response = new ImageResponse(
     (
@@ -134,7 +164,7 @@ export async function renderCredentialsImage(params: {
           width: "100%",
           height: "100%",
           backgroundColor: "#000000",
-          padding: 40,
+          padding: PADDING,
           gap: 20,
         }}
       >
@@ -204,17 +234,19 @@ export async function renderCredentialsImage(params: {
         <div
           style={{
             display: "flex",
-            flexWrap: "wrap",
             justifyContent: "center",
-            gap: 20,
+            gap: IMAGE_ROW_GAP,
             marginTop: 8,
           }}
         >
-          <ImageBox label="Screenshot 1" src={screenshot1Url} />
-          <ImageBox label="Screenshot 2" src={screenshot2Url} />
-          {backupCodesUrl ? (
-            <ImageBox label="Backup Codes" src={backupCodesUrl} />
-          ) : null}
+          {images.map((image) => (
+            <ImageBox
+              key={image.label}
+              label={image.label}
+              src={image.src}
+              width={imageBoxWidth}
+            />
+          ))}
         </div>
       </div>
     ),
